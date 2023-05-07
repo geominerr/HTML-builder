@@ -1,15 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const process = require('process');
 const readline = require('readline');
-
-const fullPath = path.join(__dirname, 'new-file.txt');
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
-
-let content = '';
 
 function exitHandler() {
   console.log('Good bye!');
@@ -25,8 +16,15 @@ function addTextFile(path, content) {
   });
 }
 
-function writeTextToFile(path, content) {
-  addTextFile(path, content);
+function writeTextToFile() {
+  const fullPath = path.join(__dirname, 'new-file.txt');
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  let content = '';
+
+  addTextFile(fullPath, content);
   console.log('Enter your message!');
 
   rl.on('line', (input) => {
@@ -35,10 +33,10 @@ function writeTextToFile(path, content) {
     }
     content = input;
 
-    addTextFile(path, content);
+    addTextFile(fullPath, content);
   });
+
+  rl.on('SIGINT', exitHandler);
 }
 
-process.on('SIGTERM', exitHandler);
-
-writeTextToFile(fullPath, content);
+writeTextToFile();
