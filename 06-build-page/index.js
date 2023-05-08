@@ -9,7 +9,6 @@ function createProjectBuild() {
       createProjectDir(dist);
     } else {
       fs.rm(dist, { recursive: true }, (error) => {
-        console.log('Delete');
         if (error) {
           console.error(error);
           return;
@@ -32,6 +31,7 @@ function createProjectDir(dist) {
 
     copyAssets(pathToAssets, pathToCopy);
     createBundleCSS();
+    createBundleHTML();
   });
 }
 
@@ -122,4 +122,58 @@ function appendFile(src, dist) {
   });
 }
 
+function createBundleHTML() {
+  const src = path.join(__dirname, 'template.html');
+  const bundle = path.join(__dirname, 'project-dist', 'index.html');
+  const componentsPath = path.join(__dirname, 'components');
+  let template = '';
+
+  fs.readFile(src, 'utf-8', (error, data) => {
+    if (error) {
+      console.log(error);
+    }
+    template = data;
+
+    fs.writeFile(bundle, '', (error) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+    });
+
+    fs.readdir(componentsPath, (error, files) => {
+      if (error) {
+        console.error(error);
+        return;
+      }
+
+      files.forEach((file) => {
+        const fullPath = path.join(componentsPath, file);
+
+        fs.stat(fullPath, (error, stats) => {
+          if (error) {
+            console.error(error);
+            return;
+          }
+
+          if (stats.isFile() && path.extname(fullPath) === '.html') {
+            const component = path.basename(fullPath).slice(0, -5);
+            const regex = new RegExp(`{{\\s*${component}\\s*}}`, 'g');
+
+            fs.readFile(fullPath, 'utf8', (error, data) => {
+              template = template.replace(regex, data);
+
+              fs.writeFile(bundle, template, (error) => {
+                if (error) {
+                  console.error(error);
+                  return;
+                }
+              });
+            });
+          }
+        });
+      });
+    });
+  });
+}
 createProjectBuild();
